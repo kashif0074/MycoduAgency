@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import omniflowImg from './assets/omniflow_erp.png'
 
 interface ScreenProps {
   setCurrentScreen: (screen: string) => void
@@ -57,7 +58,7 @@ function Screen7({ setCurrentScreen }: ScreenProps) {
       tags: ['React', 'Node.js', 'PostgreSQL', 'Docker'],
       stat: '+40%',
       statLabel: 'Efficiency Boost',
-      imgSrc: '/src/assets/omniflow_erp.png',
+      imgSrc: omniflowImg,
       colSpan: 'lg:col-span-4',
       type: ['Web', 'App']
     },

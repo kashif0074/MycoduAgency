@@ -11,6 +11,7 @@ import Screen6 from './screen6' // AI Automation
 import Screen7 from './screen7' // Portfolio & Case Studies
 import Screen8 from './screen8' // Our Process
 import Screen9 from './screen9' // SEO Services
+import Chatbot from './components/Chatbot/Chatbot'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home')
@@ -37,7 +38,7 @@ function App() {
   }
 
   return (
-    <div className="bg-background min-h-screen text-on-surface flex flex-col">
+    <div className="bg-background min-h-screen text-on-surface flex flex-col relative">
       <Navbar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} />
       <main className="flex-grow">
         <div key={currentScreen} className="fade-in-route">
@@ -45,6 +46,8 @@ function App() {
         </div>
       </main>
       <Footer setCurrentScreen={setCurrentScreen} />
+      {/* Global AI Assistant Floating Widget */}
+      <Chatbot />
     </div>
   )
 }

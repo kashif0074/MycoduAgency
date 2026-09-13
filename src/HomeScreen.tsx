@@ -9,39 +9,49 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
   const [currentIdx, setCurrentIdx] = useState(0)
   const slidesCount = 2
   const [formSubmitted, setFormSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' })
   const [submitResponseMsg, setSubmitResponseMsg] = useState('')
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.name && formData.email && formData.message) {
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setErrorMessage('Please fill in your name, email, and message.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setErrorMessage('')
+
+    try {
       const isLocal = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
       const apiBaseUrl = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:5000' : '');
-      fetch(`${apiBaseUrl}/api/contact`, {
+      const response = await fetch(`${apiBaseUrl}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          setSubmitResponseMsg(data.message || 'Thank you for reaching out. We will contact you shortly!')
-          setFormSubmitted(true)
-          setTimeout(() => {
-            setFormSubmitted(false)
-            setFormData({ name: '', email: '', subject: '', message: '' })
-            setSubmitResponseMsg('')
-          }, 6000)
-        } else {
-          alert(data.error || 'Error sending message. Please try again.')
-        }
-      })
-      .catch(error => {
-        console.error('API Error:', error)
-        alert('Server connection error. Message could not be sent. Please make sure the backend server is running on port 5000.')
-      })
+
+      const data = await response.json()
+      if (data.success) {
+        setSubmitResponseMsg(data.message || 'Thank you for reaching out. We will contact you shortly!')
+        setFormSubmitted(true)
+        setFormData({ name: '', email: '', subject: '', message: '' })
+        setTimeout(() => {
+          setFormSubmitted(false)
+          setSubmitResponseMsg('')
+        }, 7000)
+      } else {
+        setErrorMessage(data.error || 'Could not send message. Please try again.')
+      }
+    } catch (error) {
+      console.error('API Error:', error)
+      setErrorMessage('Network error: Backend server is not reachable. Please check your connection.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -794,7 +804,7 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
             <div className="glass-card p-10 rounded-2xl border-white/5 h-full relative overflow-hidden flex flex-col justify-center">
               {formSubmitted ? (
                 <div className="text-center py-12 space-y-6">
-                  <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto text-primary">
+                  <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto text-primary animate-bounce">
                     <span className="material-symbols-outlined text-5xl">task_alt</span>
                   </div>
                   <h3 className="text-2xl font-bold text-on-surface">Message Received!</h3>
@@ -804,16 +814,23 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-6">
+                  {errorMessage && (
+                    <div className="p-4 rounded-xl bg-error/10 border border-error/30 text-error text-sm flex items-center gap-3">
+                      <span className="material-symbols-outlined text-xl shrink-0">error</span>
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-code-label uppercase text-on-surface-variant tracking-wider">Your Name</label>
                       <input
                         type="text"
                         required
+                        disabled={isSubmitting}
                         placeholder="John Doe"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+                        className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -821,10 +838,11 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
                       <input
                         type="email"
                         required
+                        disabled={isSubmitting}
                         placeholder="john@example.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+                        className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
                       />
                     </div>
                   </div>
@@ -832,10 +850,11 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
                     <label className="text-xs font-code-label uppercase text-on-surface-variant tracking-wider">Subject / Inquiry</label>
                     <input
                       type="text"
+                      disabled={isSubmitting}
                       placeholder="Project architecture discussion"
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+                      className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors disabled:opacity-50"
                     />
                   </div>
                   <div className="space-y-2">
@@ -843,17 +862,26 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
                     <textarea
                       required
                       rows={4}
+                      disabled={isSubmitting}
                       placeholder="Tell us about your project goals and scope..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors resize-none"
+                      className="w-full bg-surface-container/60 border border-white/10 rounded-lg px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-colors resize-none disabled:opacity-50"
                     ></textarea>
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-primary text-on-primary font-button-text font-bold py-4 rounded-lg hover:scale-[1.02] hover:shadow-primary/20 transition-all duration-300 text-on-primary-fixed"
+                    disabled={isSubmitting}
+                    className="w-full bg-primary text-on-primary font-button-text font-bold py-4 rounded-lg hover:scale-[1.02] hover:shadow-primary/20 transition-all duration-300 text-on-primary-fixed disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Send Message
+                    {isSubmitting ? (
+                      <>
+                        <span className="w-5 h-5 border-2 border-on-primary-fixed border-t-transparent rounded-full animate-spin"></span>
+                        <span>Sending Inquiry...</span>
+                      </>
+                    ) : (
+                      'Send Message'
+                    )}
                   </button>
                 </form>
               )}
@@ -879,14 +907,12 @@ function HomeScreen({ setCurrentScreen }: HomeScreenProps) {
         </div>
       </section>
 
-
-
-      {/* Floating WhatsApp Button */}
-      <a className="fixed bottom-8 right-8 w-16 h-16 bg-[#25D366] rounded-full flex items-center justify-center shadow-2xl z-[100] group hover:scale-110 transition-transform duration-500" href="https://wa.me/923445089015" target="_blank" rel="noopener noreferrer">
-        <svg className="w-8 h-8 fill-white" viewBox="0 0 24 24">
+      {/* Floating WhatsApp Button (Positioned Bottom-Left to prevent overlap with Chatbot) */}
+      <a className="fixed bottom-8 left-8 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-2xl z-[90] group hover:scale-110 transition-transform duration-300" href="https://wa.me/923445089015" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
+        <svg className="w-7 h-7 fill-white" viewBox="0 0 24 24">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path>
         </svg>
-        <span className="absolute right-full mr-4 bg-surface text-on-surface px-4 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10">Talk to an Engineer</span>
+        <span className="absolute left-full ml-4 bg-surface text-on-surface px-4 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-white/10 shadow-xl">Talk to an Engineer</span>
       </a>
     </>
   )
