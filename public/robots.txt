@@ -1,0 +1,9 @@
+# Allow all legitimate search crawlers
+User-agent: *
+Allow: /
+
+# Disallow internal assets or private endpoints if any
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://mycodu.com/sitemap.xml

@@ -12,12 +12,14 @@ import Screen7 from './screen7' // Portfolio & Case Studies
 import Screen8 from './screen8' // Our Process
 import Screen9 from './screen9' // SEO Services
 import Chatbot from './components/Chatbot/Chatbot'
+import { updatePageSEO } from './utils/seoData'
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home')
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' as any })
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    updatePageSEO(currentScreen)
   }, [currentScreen])
 
   const renderScreen = () => {

@@ -95,13 +95,36 @@ app.post('/api/contact', checkDbConnection, async (req, res) => {
     
     res.status(201).json({ 
       success: true, 
-      message: 'Your message has been stored properly in the MongoDB database!' 
+      message: 'Your message has been stored properly in the MongoDB database!',
+      data: newContact
     });
   } catch (error) {
     console.error('Error saving contact query:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 });
+
+// Read All Contact Submissions
+app.get('/api/contact', checkDbConnection, async (req, res) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    res.json({ success: true, count: contacts.length, data: contacts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete Contact Submission
+app.delete('/api/contact/:id', checkDbConnection, async (req, res) => {
+  try {
+    const contact = await Contact.findByIdAndDelete(req.params.id);
+    if (!contact) return res.status(404).json({ success: false, error: 'Contact inquiry not found.' });
+    res.json({ success: true, message: 'Contact inquiry deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 const { GoogleGenAI } = require('@google/genai');
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 

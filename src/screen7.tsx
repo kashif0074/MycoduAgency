@@ -143,9 +143,13 @@ function Screen7({ setCurrentScreen }: ScreenProps) {
                   {c.imgSrc ? (
                     <div className="w-full md:w-[400px] relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-l from-transparent to-surface z-10 hidden md:block"></div>
-                      <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                        data-alt={c.title} 
+                      <img 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        alt={c.title} 
                         src={c.imgSrc}
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
                       />
                     </div>
                   ) : (
